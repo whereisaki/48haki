@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企划日程安排工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .main-container {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-sidebar {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .stats-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        .stats-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #6a89cc;
+        }
+        
+        .stat-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+        
+        .stat-subvalue {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .stat-percentage {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .stat-percentage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #55efc4, #00b894);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .days-container {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .day-row {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        
+        .day-column {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .day-header {
+            background: linear-gradient(135deg, #6a89cc 0%, #4a69bd 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .time-range {
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .time-slots {
+            padding: 10px;
+            height: 900px;
+            overflow-y: auto;
+            position: relative;
+            flex: 1;
+        }
+        
+        .time-slot {
+            display: flex;
+            height: 80px;
+            border-bottom: 1px solid #eaeaea;
+            align-items: flex-start;
+            position: relative;
+        }
+        
+        .time-label {
+            width: 70px;
+            padding: 12px 8px 0 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background-color: #f9f9f9;
+            height: 100%;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        
+        .time-content {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            padding: 5px;
+            min-height: 70px;
+        }
+        
+        .planning-card {
+            position: absolute;
+            width: calc(100% - 10px);
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            cursor: move;
+            transition: all 0.25s ease;
+            border-left: 5px solid #4a69bd;
+            z-index: 10;
+            height: 70px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .planning-card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+            transform: translateY(-2px);
+        }
+        
+        .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-details {
+            font-size: 0.85rem;
+            color: #555;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .card-status-container {
+            width: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            margin-left: 10px;
+        }
+        
+        .card-status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 18px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-align: center;
+            width: 80px;
+        }
+        
+        .status-scheduled { background-color: #ffeaa7; color: #e17055; }
+        .status-not-started { background-color: #dfe6e9; color: #636e72; }
+        .status-in-progress { background-color: #a29bfe; color: white; }
+        .status-completed { background-color: #55efc4; color: #00b894; }
+        
+        .form-sidebar {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 22px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #6a89cc;
+            box-shadow: 0 0 0 3px rgba(106, 137, 204, 0.2);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #6a89cc 0%, #4a69bd 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(106, 137, 204, 0.4);
+        }
+        
+        .type-specific {
+            display: none;
+            margin-top: 12px;
+        }
+        
+        .card-type-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            margin-right: 8px;
+            text-align: center;
+            line-height: 22px;
+            font-size: 0.75rem;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .type-text { background-color: #3498db; }
+        .type-adult { background-color: #e74c3c; }
+        .type-game { background-color: #9b59b6; }
+        .type-art { background-color: #2ecc71; }
+        .type-video { background-color: #f39c12; }
+        
+        .instructions {
+            background-color: #fff9e6;
+            border-left: 5px solid #f1c40f;
+            padding: 18px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        
+        .instructions h3 {
+            color: #d35400;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            gap: 15px;
+        }
+        
+        .controls button {
+            flex: 1;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+        
+        @media (max-width: 1400px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .stats-sidebar {
+                width: 100%;
+                flex-direction: row;
+            }
+            
+            .form-sidebar {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .day-row {
+                flex-direction: column;
+            }
+            
+            .stats-sidebar {
+                flex-direction: column;
+            }
+        }
+        
+        .dragging {
+            opacity: 0.85;
+            transform: rotate(3deg);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+        
+        .drop-zone {
+            min-height: 80px;
+            transition: background-color 0.2s;
+        }
+        
+        .drop-zone.active {
+            background-color: rgba(106, 137, 204, 0.12);
+            border-radius: 8px;
+        }
+        
+        .detail-badge {
+            background-color: #f1f2f6;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+        
+        .type-badge {
+            background-color: #eef2ff;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #4a69bd;
+            font-weight: 500;
+        }
+        
+        .time-period {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        .stat-highlight {
+            background-color: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        
+        .stat-total {
+            background-color: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>企划日程安排工具</h1>
+            <p class="subtitle">拖动卡片安排5月20日-21日的企划内容，实时统计进度和数据</p>
+        </header>
+        
+        <div class="instructions">
+            <h3>使用说明</h3>
+            <p>1. 在左侧表单中创建新的企划内容卡片</p>
+            <p>2. 根据内容类型填写相应的字数或价格</p>
+            <p>3. 将卡片拖动到右侧时间轴上的任意时间段（每个时间槽高度为80px）</p>
+            <p>4. 右侧统计面板会实时更新字数、稿费、完成情况等数据</p>
+            <p>5. 点击"重置日程"可以清除所有卡片</p>
+        </div>
+        
+        <div class="main-container">
+            <div class="stats-sidebar">
+                <div class="form-sidebar">
+                    <h3>创建新的企划内容</h3>
+                    <form id="planningForm">
+                        <div class="form-group">
+                            <label for="title">文章标题</label>
+                            <input type="text" id="title" placeholder="请输入文章标题" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="type">创作载体</label>
+                            <select id="type" required>
+                                <option value="">请选择创作载体</option>
+                                <option value="清水文">清水文</option>
+                                <option value="黄文">黄文</option>
+                                <option value="文字游戏">文字游戏</option>
+                                <option value="画作">画作</option>
+                                <option value="手书">手书</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div id="textTypeFields" class="type-specific">
+                                <label for="wordCount">字数</label>
+                                <input type="number" id="wordCount" min="0" placeholder="请输入字数">
+                            </div>
+                            
+                            <div id="artTypeFields" class="type-specific">
+                                <label for="price">价格</label>
+                                <input type="number" id="price" min="0" placeholder="请输入价格">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="status">完成情况</label>
+                            <select id="status" required>
+                                <option value="">请选择完成情况</option>
+                                <option value="档期中">档期中</option>
+                                <option value="未开始">未开始</option>
+                                <option value="未完成">未完成</option>
+                                <option value="已完成">已完成</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn">创建卡片</button>
+                    </form>
+                    
+                    <div class="controls">
+                        <button class="btn btn-secondary" id="resetBtn">重置日程</button>
+                        <button class="btn" id="exportBtn">导出日程</button>
+                    </div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stats-header">统计信息</div>
+                    
+                    <div class="stat-item stat-highlight">
+                        <div>
+                            <div class="stat-label">总字数</div>
+                            <div class="stat-subvalue">所有文字类内容字数总和</div>
+                        </div>
+                        <div class="stat-value" id="totalWords">0 字</div>
+                    </div>
+                    
+                    <div class="stat-item stat-highlight">
+                        <div>
+                            <div class="stat-label">稿费总价格</div>
+                            <div class="stat-subvalue">所有画作/手书价格总和</div>
+                        </div>
+                        <div class="stat-value" id="totalPrice">0 元</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div>
+                            <div class="stat-label">总项目数</div>
+                            <div class="stat-subvalue">所有企划内容数量</div>
+                        </div>
+                        <div class="stat-value" id="totalItems">0</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div>
+                            <div class="stat-label">已完成</div>
+                            <div class="stat-subvalue">状态为"已完成"的项目</div>
+                        </div>
+                        <div class="stat-value" id="completedItems">0</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div>
+                            <div class="stat-label">未完成</div>
+                            <div class="stat-subvalue">状态不为"已完成"的项目</div>
+                        </div>
+                        <div class="stat-value" id="uncompletedItems">0</div>
+                    </div>
+                    
+                    <div class="stat-item stat-total">
+                        <div>
+                            <div class="stat-label">完成百分比</div>
+                            <div class="stat-subvalue">已完成项目占总项目比例</div>
+                        </div>
+                        <div class="stat-value" id="completionPercentage">0%</div>
+                    </div>
+                    
+                    <div class="stat-percentage">
+                        <div class="stat-percentage-fill" id="completionBar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="stat-item" style="margin-top: 20px;">
+                        <div>
+                            <div class="stat-label">项目分布</div>
+                            <div class="stat-subvalue">按类型统计的项目数量</div>
+                        </div>
+                    </div>
+                    
+                    <div id="typeDistribution" style="margin-top: 10px; font-size: 0.9rem;">
+                        <!-- 类型分布将通过JavaScript生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="days-container">
+                <div class="day-row">
+                    <div class="day-column">
+                        <div class="day-header">
+                            5月20日 星期一
+                            <div class="time-range">0:00 - 11:00</div>
+                        </div>
+                        <div class="time-slots" id="day1-am-slots" data-day="5月20日" data-period="am">
+                            <!-- 时间槽位将通过JavaScript生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="day-column">
+                        <div class="day-header">
+                            5月20日 星期一
+                            <div class="time-range">12:00 - 23:00</div>
+                        </div>
+                        <div class="time-slots" id="day1-pm-slots" data-day="5月20日" data-period="pm">
+                            <!-- 时间槽位将通过JavaScript生成 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="day-row">
+                    <div class="day-column">
+                        <div class="day-header">
+                            5月21日 星期二
+                            <div class="time-range">0:00 - 11:00</div>
+                        </div>
+                        <div class="time-slots" id="day2-am-slots" data-day="5月21日" data-period="am">
+                            <!-- 时间槽位将通过JavaScript生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="day-column">
+                        <div class="day-header">
+                            5月21日 星期二
+                            <div class="time-range">12:00 - 23:00</div>
+                        </div>
+                        <div class="time-slots" id="day2-pm-slots" data-day="5月21日" data-period="pm">
+                            <!-- 时间槽位将通过JavaScript生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化变量
+        let cardCounter = 0;
+        let draggedCard = null;
+        
+        // 生成时间槽位
+        function generateTimeSlots() {
+            const slotsContainers = [
+                { id: 'day1-am-slots', day: '5月20日', period: 'am', startHour: 0, endHour: 11 },
+                { id: 'day1-pm-slots', day: '5月20日', period: 'pm', startHour: 12, endHour: 23 },
+                { id: 'day2-am-slots', day: '5月21日', period: 'am', startHour: 0, endHour: 11 },
+                { id: 'day2-pm-slots', day: '5月21日', period: 'pm', startHour: 12, endHour: 23 }
+            ];
+            
+            slotsContainers.forEach(container => {
+                const slotsElement = document.getElementById(container.id);
+                slotsElement.innerHTML = '';
+                
+                for (let hour = container.startHour; hour <= container.endHour; hour++) {
+                    // 格式化小时显示
+                    const hourLabel = hour < 10 ? `0${hour}:00` : `${hour}:00`;
+                    
+                    // 创建时间槽
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot drop-zone';
+                    timeSlot.dataset.hour = hour;
+                    
+                    timeSlot.innerHTML = `
+                        <div class="time-label">
+                            ${hourLabel}
+                            <div class="time-period">${container.day}</div>
+                        </div>
+                        <div class="time-content" data-hour="${hour}"></div>
+                    `;
+                    
+                    slotsElement.appendChild(timeSlot);
+                }
+            });
+        }
+        
+        // 根据类型显示不同的输入字段
+        document.getElementById('type').addEventListener('change', function() {
+            const type = this.value;
+            const textFields = document.getElementById('textTypeFields');
+            const artFields = document.getElementById('artTypeFields');
+            
+            // 隐藏所有类型特定字段
+            textFields.style.display = 'none';
+            artFields.style.display = 'none';
+            
+            // 根据选择的类型显示相应字段
+            if (type === '清水文' || type === '黄文' || type === '文字游戏') {
+                textFields.style.display = 'block';
+            } else if (type === '画作' || type === '手书') {
+                artFields.style.display = 'block';
+            }
+        });
+        
+        // 更新统计信息
+        function updateStatistics() {
+            const cards = document.querySelectorAll('.planning-card');
+            let totalWords = 0;
+            let totalPrice = 0;
+            let completedItems = 0;
+            let totalItems = cards.length;
+            
+            // 类型分布统计
+            const typeDistribution = {
+                '清水文': 0,
+                '黄文': 0,
+                '文字游戏': 0,
+                '画作': 0,
+                '手书': 0
+            };
+            
+            cards.forEach(card => {
+                const type = card.dataset.type;
+                const detail = card.dataset.detail;
+                const status = card.dataset.status;
+                
+                // 统计类型分布
+                if (typeDistribution.hasOwnProperty(type)) {
+                    typeDistribution[type]++;
+                }
+                
+                // 统计完成情况
+                if (status === '已完成') {
+                    completedItems++;
+                }
+                
+                // 统计字数或价格
+                if (detail) {
+                    if (type === '清水文' || type === '黄文' || type === '文字游戏') {
+                        // 提取数字
+                        const wordMatch = detail.match(/(\d+)/);
+                        if (wordMatch) {
+                            totalWords += parseInt(wordMatch[1]);
+                        }
+                    } else if (type === '画作' || type === '手书') {
+                        // 提取数字
+                        const priceMatch = detail.match(/(\d+)/);
+                        if (priceMatch) {
+                            totalPrice += parseInt(priceMatch[1]);
+                        }
+                    }
+                }
+            });
+            
+            // 计算未完成数量
+            const uncompletedItems = totalItems - completedItems;
+            
+            // 计算完成百分比
+            const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            
+            // 更新统计显示
+            document.getElementById('totalWords').textContent = totalWords.toLocaleString() + ' 字';
+            document.getElementById('totalPrice').textContent = totalPrice.toLocaleString() + ' 元';
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('completedItems').textContent = completedItems;
+            document.getElementById('uncompletedItems').textContent = uncompletedItems;
+            document.getElementById('completionPercentage').textContent = completionPercentage + '%';
+            
+            // 更新进度条
+            document.getElementById('completionBar').style.width = completionPercentage + '%';
+            
+            // 更新类型分布显示
+            const typeDistributionElement = document.getElementById('typeDistribution');
+            typeDistributionElement.innerHTML = '';
+            
+            for (const type in typeDistribution) {
+                if (typeDistribution[type] > 0) {
+                    const typeElement = document.createElement('div');
+                    typeElement.style.display = 'flex';
+                    typeElement.style.justifyContent = 'space-between';
+                    typeElement.style.marginBottom = '8px';
+                    typeElement.style.padding = '5px 10px';
+                    typeElement.style.backgroundColor = '#f9f9f9';
+                    typeElement.style.borderRadius = '6px';
+                    
+                    typeElement.innerHTML = `
+                        <span>${type}</span>
+                        <span style="font-weight: 600;">${typeDistribution[type]} 项</span>
+                    `;
+                    
+                    typeDistributionElement.appendChild(typeElement);
+                }
+            }
+            
+            if (Object.keys(typeDistribution).filter(type => typeDistribution[type] > 0).length === 0) {
+                typeDistributionElement.innerHTML = '<div style="text-align: center; color: #999; padding: 10px;">暂无数据</div>';
+            }
+        }
+        
+        // 创建卡片
+        document.getElementById('planningForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const type = document.getElementById('type').value;
+            const status = document.getElementById('status').value;
+            
+            // 根据类型获取字数或价格
+            let detail = '';
+            let detailLabel = '';
+            if (type === '清水文' || type === '黄文' || type === '文字游戏') {
+                const wordCount = document.getElementById('wordCount').value;
+                detail = wordCount ? `${wordCount}字` : '字数未指定';
+                detailLabel = '字数';
+            } else if (type === '画作' || type === '手书') {
+                const price = document.getElementById('price').value;
+                detail = price ? `${price}元` : '价格未指定';
+                detailLabel = '价格';
+            }
+            
+            // 创建卡片元素
+            const card = document.createElement('div');
+            card.className = 'planning-card';
+            card.id = `card-${cardCounter}`;
+            card.draggable = true;
+            card.dataset.id = cardCounter;
+            card.dataset.title = title;
+            card.dataset.type = type;
+            card.dataset.status = status;
+            card.dataset.detail = detail;
+            card.dataset.detailLabel = detailLabel;
+            
+            // 确定卡片类型对应的颜色和图标
+            let typeClass = '';
+            let typeIcon = '';
+            
+            switch(type) {
+                case '清水文':
+                    typeClass = 'type-text';
+                    typeIcon = '文';
+                    break;
+                case '黄文':
+                    typeClass = 'type-adult';
+                    typeIcon = '黄';
+                    break;
+                case '文字游戏':
+                    typeClass = 'type-game';
+                    typeIcon = '游';
+                    break;
+                case '画作':
+                    typeClass = 'type-art';
+                    typeIcon = '画';
+                    break;
+                case '手书':
+                    typeClass = 'type-video';
+                    typeIcon = '手';
+                    break;
+            }
+            
+            // 确定状态对应的颜色
+            let statusClass = '';
+            switch(status) {
+                case '档期中':
+                    statusClass = 'status-scheduled';
+                    break;
+                case '未开始':
+                    statusClass = 'status-not-started';
+                    break;
+                case '未完成':
+                    statusClass = 'status-in-progress';
+                    break;
+                case '已完成':
+                    statusClass = 'status-completed';
+                    break;
+            }
+            
+            card.innerHTML = `
+                <div class="card-content">
+                    <div class="card-title">
+                        <span class="card-type-icon ${typeClass}">${typeIcon}</span>
+                        ${title}
+                    </div>
+                    <div class="card-details">
+                        <span class="type-badge">${type}</span>
+                        <span class="detail-badge">${detailLabel}: ${detail}</span>
+                    </div>
+                </div>
+                <div class="card-status-container">
+                    <div class="card-status ${statusClass}">${status}</div>
+                </div>
+            `;
+            
+            // 默认将卡片放在第一个时间槽中（5月20日上午9点）
+            const firstTimeContent = document.querySelector('#day1-am-slots .time-content[data-hour="9"]');
+            if (firstTimeContent) {
+                card.style.top = '5px';
+                card.style.height = '70px';
+                firstTimeContent.appendChild(card);
+            }
+            
+            // 添加拖拽事件
+            addDragEvents(card);
+            
+            // 增加卡片计数
+            cardCounter++;
+            
+            // 更新统计信息
+            updateStatistics();
+            
+            // 重置表单
+            document.getElementById('planningForm').reset();
+            document.getElementById('textTypeFields').style.display = 'none';
+            document.getElementById('artTypeFields').style.display = 'none';
+        });
+        
+        // 添加拖拽事件
+        function addDragEvents(card) {
+            card.addEventListener('dragstart', function(e) {
+                draggedCard = this;
+                this.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', this.id);
+            });
+            
+            card.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                draggedCard = null;
+                
+                // 移除所有激活的拖放区域
+                document.querySelectorAll('.drop-zone.active').forEach(zone => {
+                    zone.classList.remove('active');
+                });
+                
+                // 更新统计信息
+                updateStatistics();
+            });
+        }
+        
+        // 添加拖放区域事件
+        function addDropZoneEvents() {
+            const dropZones = document.querySelectorAll('.time-content');
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.parentElement.classList.add('active');
+                });
+                
+                zone.addEventListener('dragleave', function() {
+                    this.parentElement.classList.remove('active');
+                });
+                
+                zone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    
+                    if (draggedCard) {
+                        this.appendChild(draggedCard);
+                        
+                        // 将卡片固定在时间槽顶部
+                        draggedCard.style.top = '5px';
+                        draggedCard.style.height = '70px';
+                    }
+                    
+                    this.parentElement.classList.remove('active');
+                });
+            });
+        }
+        
+        // 初始化一些示例卡片
+        function initializeExampleCards() {
+            const examples = [
+                {
+                    title: "夏日回忆录",
+                    type: "清水文",
+                    detail: "3500字",
+                    detailLabel: "字数",
+                    status: "已完成",
+                    day: "5月20日",
+                    period: "am",
+                    hour: 9
+                },
+                {
+                    title: "星夜幻想曲",
+                    type: "画作",
+                    detail: "150元",
+                    detailLabel: "价格",
+                    status: "档期中",
+                    day: "5月20日",
+                    period: "pm",
+                    hour: 14
+                },
+                {
+                    title: "梦境迷踪",
+                    type: "文字游戏",
+                    detail: "5000字",
+                    detailLabel: "字数",
+                    status: "未完成",
+                    day: "5月21日",
+                    period: "am",
+                    hour: 10
+                },
+                {
+                    title: "月光下的秘密",
+                    type: "黄文",
+                    detail: "2000字",
+                    detailLabel: "字数",
+                    status: "未开始",
+                    day: "5月21日",
+                    period: "pm",
+                    hour: 16
+                },
+                {
+                    title: "星辰大海手书",
+                    type: "手书",
+                    detail: "200元",
+                    detailLabel: "价格",
+                    status: "已完成",
+                    day: "5月21日",
+                    period: "pm",
+                    hour: 20
+                }
+            ];
+            
+            examples.forEach((example, index) => {
+                const card = document.createElement('div');
+                card.className = 'planning-card';
+                card.id = `card-example-${index}`;
+                card.draggable = true;
+                card.dataset.id = `example-${index}`;
+                card.dataset.title = example.title;
+                card.dataset.type = example.type;
+                card.dataset.status = example.status;
+                card.dataset.detail = example.detail;
+                card.dataset.detailLabel = example.detailLabel;
+                
+                let typeClass = '';
+                let typeIcon = '';
+                
+                switch(example.type) {
+                    case '清水文':
+                        typeClass = 'type-text';
+                        typeIcon = '文';
+                        break;
+                    case '黄文':
+                        typeClass = 'type-adult';
+                        typeIcon = '黄';
+                        break;
+                    case '文字游戏':
+                        typeClass = 'type-game';
+                        typeIcon = '游';
+                        break;
+                    case '画作':
+                        typeClass = 'type-art';
+                        typeIcon = '画';
+                        break;
+                    case '手书':
+                        typeClass = 'type-video';
+                        typeIcon = '手';
+                        break;
+                }
+                
+                let statusClass = '';
+                switch(example.status) {
+                    case '档期中':
+                        statusClass = 'status-scheduled';
+                        break;
+                    case '未开始':
+                        statusClass = 'status-not-started';
+                        break;
+                    case '未完成':
+                        statusClass = 'status-in-progress';
+                        break;
+                    case '已完成':
+                        statusClass = 'status-completed';
+                        break;
+                }
+                
+                card.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span class="card-type-icon ${typeClass}">${typeIcon}</span>
+                            ${example.title}
+                        </div>
+                        <div class="card-details">
+                            <span class="type-badge">${example.type}</span>
+                            <span class="detail-badge">${example.detailLabel}: ${example.detail}</span>
+                        </div>
+                    </div>
+                    <div class="card-status-container">
+                        <div class="card-status ${statusClass}">${example.status}</div>
+                    </div>
+                `;
+                
+                // 将卡片添加到对应的时间槽
+                const slotsId = `${example.day === "5月20日" ? "day1" : "day2"}-${example.period}-slots`;
+                const daySlots = document.getElementById(slotsId);
+                if (daySlots) {
+                    const timeContent = daySlots.querySelector(`.time-content[data-hour="${example.hour}"]`);
+                    if (timeContent) {
+                        // 设置固定位置
+                        card.style.top = '5px';
+                        card.style.height = '70px';
+                        
+                        timeContent.appendChild(card);
+                        addDragEvents(card);
+                        
+                        cardCounter++;
+                    }
+                }
+            });
+            
+            // 初始化统计信息
+            updateStatistics();
+        }
+        
+        // 重置日程
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            if (confirm('确定要重置所有日程安排吗？这将清除所有卡片。')) {
+                document.querySelectorAll('.planning-card').forEach(card => {
+                    card.remove();
+                });
+                cardCounter = 0;
+                initializeExampleCards();
+            }
+        });
+        
+        // 导出日程
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const cards = document.querySelectorAll('.planning-card');
+            const schedule = { 
+                "5月20日 上午(0-11时)": {}, 
+                "5月20日 下午(12-23时)": {},
+                "5月21日 上午(0-11时)": {}, 
+                "5月21日 下午(12-23时)": {}
+            };
+            
+            cards.forEach(card => {
+                const timeContent = card.parentElement;
+                const hour = timeContent.dataset.hour;
+                const dayColumn = timeContent.closest('.time-slots');
+                const day = dayColumn.dataset.day;
+                const period = dayColumn.dataset.period;
+                
+                const periodText = period === 'am' ? '上午(0-11时)' : '下午(12-23时)';
+                const scheduleKey = `${day} ${periodText}`;
+                
+                if (!schedule[scheduleKey][hour]) {
+                    schedule[scheduleKey][hour] = [];
+                }
+                
+                schedule[scheduleKey][hour].push({
+                    title: card.dataset.title,
+                    type: card.dataset.type,
+                    status: card.dataset.status,
+                    detail: card.dataset.detail
+                });
+            });
+            
+            // 创建导出文本
+            let exportText = "企划日程安排\n";
+            exportText += "====================\n\n";
+            
+            // 添加统计信息
+            exportText += "【统计信息】\n";
+            exportText += "总字数: " + document.getElementById('totalWords').textContent + "\n";
+            exportText += "稿费总价格: " + document.getElementById('totalPrice').textContent + "\n";
+            exportText += "总项目数: " + document.getElementById('totalItems').textContent + "\n";
+            exportText += "已完成: " + document.getElementById('completedItems').textContent + "\n";
+            exportText += "未完成: " + document.getElementById('uncompletedItems').textContent + "\n";
+            exportText += "完成百分比: " + document.getElementById('completionPercentage').textContent + "\n\n";
+            
+            exportText += "【详细安排】\n";
+            exportText += "====================\n\n";
+            
+            for (const scheduleKey in schedule) {
+                exportText += `${scheduleKey}\n`;
+                exportText += "--------------------\n";
+                
+                const hours = Object.keys(schedule[scheduleKey]).sort((a, b) => a - b);
+                
+                for (const hour of hours) {
+                    const hourStr = hour < 10 ? `0${hour}:00` : `${hour}:00`;
+                    const cardsAtHour = schedule[scheduleKey][hour];
+                    
+                    if (cardsAtHour && cardsAtHour.length > 0) {
+                        exportText += `${hourStr}\n`;
+                        
+                        cardsAtHour.forEach(card => {
+                            exportText += `  - ${card.title} (${card.type}, ${card.detail}) - ${card.status}\n`;
+                        });
+                    }
+                }
+                
+                exportText += "\n";
+            }
+            
+            // 创建下载链接
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '企划日程安排.txt';
+            a.click();
+            
+            alert('日程已导出为文本文件！');
+        });
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            generateTimeSlots();
+            addDropZoneEvents();
+            initializeExampleCards();
+        });
+    </script>
+</body>
+</html>
